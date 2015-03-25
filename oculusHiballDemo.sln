@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common Libs", "Common Libs", "{FBE2FF81-737C-4875-9367-E5D7D0D41F18}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Kishore's Apps", "Kishore's Apps", "{6262C815-9B51-437F-ADE6-B570A7E0A12E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLHelper", "GLHelper\GLHelper.vcxproj", "{624D265B-DE09-43B2-9CCA-E778319C0C38}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "renderAllContentInRift", "renderAllContentInRift\renderAllContentInRift.vcxproj", "{F4F4C197-600F-4FDF-BC7C-276B10757938}"
+	ProjectSection(ProjectDependencies) = postProject
+		{624D265B-DE09-43B2-9CCA-E778319C0C38} = {624D265B-DE09-43B2-9CCA-E778319C0C38}
+		{F279DFEE-F193-429B-95C0-50D69E5413AD} = {F279DFEE-F193-429B-95C0-50D69E5413AD}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSurface", "CSurface\CSurface.vcxproj", "{F279DFEE-F193-429B-95C0-50D69E5413AD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GetOpt", "GetOpt\GetOpt.vcxproj", "{72A9770B-64CE-42F9-B042-57F7FAC42509}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{624D265B-DE09-43B2-9CCA-E778319C0C38}.Debug|Win32.ActiveCfg = Debug|Win32
+		{624D265B-DE09-43B2-9CCA-E778319C0C38}.Debug|Win32.Build.0 = Debug|Win32
+		{624D265B-DE09-43B2-9CCA-E778319C0C38}.Debug|x64.ActiveCfg = Debug|x64
+		{624D265B-DE09-43B2-9CCA-E778319C0C38}.Debug|x64.Build.0 = Debug|x64
+		{624D265B-DE09-43B2-9CCA-E778319C0C38}.Release|Win32.ActiveCfg = Release|Win32
+		{624D265B-DE09-43B2-9CCA-E778319C0C38}.Release|Win32.Build.0 = Release|Win32
+		{624D265B-DE09-43B2-9CCA-E778319C0C38}.Release|x64.ActiveCfg = Release|x64
+		{F4F4C197-600F-4FDF-BC7C-276B10757938}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F4F4C197-600F-4FDF-BC7C-276B10757938}.Debug|Win32.Build.0 = Debug|Win32
+		{F4F4C197-600F-4FDF-BC7C-276B10757938}.Debug|x64.ActiveCfg = Debug|x64
+		{F4F4C197-600F-4FDF-BC7C-276B10757938}.Debug|x64.Build.0 = Debug|x64
+		{F4F4C197-600F-4FDF-BC7C-276B10757938}.Release|Win32.ActiveCfg = Release|Win32
+		{F4F4C197-600F-4FDF-BC7C-276B10757938}.Release|Win32.Build.0 = Release|Win32
+		{F4F4C197-600F-4FDF-BC7C-276B10757938}.Release|x64.ActiveCfg = Release|x64
+		{F4F4C197-600F-4FDF-BC7C-276B10757938}.Release|x64.Build.0 = Release|x64
+		{F279DFEE-F193-429B-95C0-50D69E5413AD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F279DFEE-F193-429B-95C0-50D69E5413AD}.Debug|Win32.Build.0 = Debug|Win32
+		{F279DFEE-F193-429B-95C0-50D69E5413AD}.Debug|x64.ActiveCfg = Debug|x64
+		{F279DFEE-F193-429B-95C0-50D69E5413AD}.Debug|x64.Build.0 = Debug|x64
+		{F279DFEE-F193-429B-95C0-50D69E5413AD}.Release|Win32.ActiveCfg = Release|Win32
+		{F279DFEE-F193-429B-95C0-50D69E5413AD}.Release|Win32.Build.0 = Release|Win32
+		{F279DFEE-F193-429B-95C0-50D69E5413AD}.Release|x64.ActiveCfg = Release|x64
+		{72A9770B-64CE-42F9-B042-57F7FAC42509}.Debug|Win32.ActiveCfg = Debug|Win32
+		{72A9770B-64CE-42F9-B042-57F7FAC42509}.Debug|Win32.Build.0 = Debug|Win32
+		{72A9770B-64CE-42F9-B042-57F7FAC42509}.Debug|x64.ActiveCfg = Debug|x64
+		{72A9770B-64CE-42F9-B042-57F7FAC42509}.Debug|x64.Build.0 = Debug|x64
+		{72A9770B-64CE-42F9-B042-57F7FAC42509}.Release|Win32.ActiveCfg = Release|Win32
+		{72A9770B-64CE-42F9-B042-57F7FAC42509}.Release|Win32.Build.0 = Release|Win32
+		{72A9770B-64CE-42F9-B042-57F7FAC42509}.Release|x64.ActiveCfg = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{624D265B-DE09-43B2-9CCA-E778319C0C38} = {FBE2FF81-737C-4875-9367-E5D7D0D41F18}
+		{F279DFEE-F193-429B-95C0-50D69E5413AD} = {FBE2FF81-737C-4875-9367-E5D7D0D41F18}
+		{72A9770B-64CE-42F9-B042-57F7FAC42509} = {FBE2FF81-737C-4875-9367-E5D7D0D41F18}
+		{F4F4C197-600F-4FDF-BC7C-276B10757938} = {6262C815-9B51-437F-ADE6-B570A7E0A12E}
+	EndGlobalSection
+EndGlobal
