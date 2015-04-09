@@ -1,6 +1,8 @@
 #define PRINT_PROJECTION_MATRIX 0
 #define PRINT_MODELVIEW_MATRIX 0
+#include "dirent.h"
 #include "renderStaticObjectInRift.h"
+
 
 //Globals for static Object rendering
 extern GLuint shaderProgram;
@@ -14,15 +16,15 @@ extern float globalRotx;
 extern float globalRoty;
 extern float globalRotz;
 
-float transx = 40;
+float transx = -100;
 float transy = 10;
-float transz = -60;
-float rotx = 0;
-float roty = -50;
-float rotz = 0;
+float transz = -280;
+float rotx = -230;
+float roty = 0;
+float rotz = 40;
 
 double rotAngle;
-CSurface_F surf;
+vector<CSurface_F> source;
 GLuint surfaceBuffers[2];
 int staticObjectsKeyMode = 0;
 bool drawGardenGnome = false;
@@ -253,9 +255,18 @@ void scannedObject::drawScannedObject() {
   glDisableVertexAttribArray(colorIndex);
 }
 
-void drawScannedRoom() {
-  glBindBuffer(GL_ARRAY_BUFFER, surfaceBuffers[0]);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceBuffers[1]);
+void drawScannedRoom(int number) {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glLoadIdentity();
+
+  //printf("drawing room #%i\n", number);
+  CSurface_F surf = source[(int)number];
+
+  GLuint buffers[2];
+	glGenBuffers(2, buffers);
+
+  glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
 
   int positionIndex = glGetAttribLocation(shaderProgram, "position");
   dieOnInvalidIndex(positionIndex, "position");
@@ -284,6 +295,10 @@ void drawScannedRoom() {
     * rotation3D(vec3(1,0,0), globalRotx) 
     * rotation3D(vec3(0,1,0), globalRoty) 
     * rotation3D(vec3(0,0,1), globalRotz);
+
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*surf.vtNum*surf.vtDim, surf.vtData, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*surf.triNum*3, surf.triangles, GL_STATIC_DRAW);
+
 
 #if PRINT_OFFSETMODELVIEW_MATRIX 
   printf("Current offsetModelView matrix /n");
@@ -325,18 +340,22 @@ void drawScannedRoom() {
 	
   glDisableVertexAttribArray(positionIndex);
   glDisableVertexAttribArray(colorIndex);
+  glDeleteBuffers(2, buffers);
+	
+	glFlush();
+	glutSwapBuffers();
 }
 
-void renderStaticObjectInRift() {    
-
+void renderStaticObjectInRift(int number) {   
+	//printf("redering #%i", number);
   switch(2){
   case 1:{
     glutReshapeWindow(800, 800);  
-    drawScannedRoom();
+    drawScannedRoom(number);
     break;
   }
   case 2:{
-    drawScannedRoom();
+    drawScannedRoom(number);
     break;
   }
   default: printf("Invalid option /n"); break;
@@ -459,17 +478,55 @@ void renderStaticObjectInRiftTimer(int t) {
   glutTimerFunc(30, renderStaticObjectInRiftTimer, 0);
 }
 
-void loadScannedRoom() {
-#if USE_RELATIVE_PATHS
-  char fname[] = "D:/Lucas/oculusHiballDemo/Data/davidRoom.bin";
-#else
-  char fname[] = "D:/Lucas/oculusHiballDemo/Data/davidRoom.bin";
-#endif
+void filter(std::vector<std::string>& strings, std::string pattern)
+{
+    auto pos = std::remove_if(std::begin(strings), std::end(strings), 
+                              [&](std::string& s) { return s.find(pattern) == std::string::npos ; }) ; 
+    strings.erase(pos, std::end(strings)) ;
+}
 
-  if (!surf.readFromFile(fname)) {
+void loadScannedRoom() {
+//#if USE_RELATIVE_PATHS
+//  //char fname[] = "D:/Lucas/oculusHiballDemo/Data/davidRoom.bin";
+//  char fname[] = "D:/Lucas/oculusHiballDemo/Data/surface_all_0036.bin";
+//#else
+//  //char fname[] = "D:/Lucas/oculusHiballDemo/Data/davidRoom.bin";
+//	char fname[] = "D:/Lucas/oculusHiballDemo/Data/surface_all_0036.bin";
+//#endif
+
+  DIR *dir;
+	struct dirent *ent;
+	vector<string> files;
+	if ((dir = opendir ("D:/Lucas/3dDataRendering/data/seq_bingjie_sit/")) != NULL) {
+	  /* print all the files and directories within directory */
+	  while ((ent = readdir (dir)) != NULL) {
+		//printf ("%s\n", ent->d_name);
+		  files.push_back(ent->d_name);
+	  }
+	  closedir (dir);
+	} else {
+	  perror ("Could not open directory");
+	}
+	filter(files, "surface_all_");
+	printf("Obtained file list total: %i", files.size());
+	//print(files);
+	for(int i = 0; i < NUM_BUFFER; i++) {
+		string file = "D:/Lucas/3dDataRendering/data/seq_bingjie_sit/" + files[i];
+		//std::cout << file << endl;
+		CSurface_F input;
+		if (!input.readFromFile(file.c_str())) {
+			cout << "Could not read the surface file!" << endl;
+			die();
+		} else {
+			source.push_back(input);
+		}
+	}
+
+  /*if (!surf.readFromFile(fname)) {
     cout << "Could not read the surface file!" << endl;
     die();
-  }
+  }*/
+  CSurface_F surf = source[100];
 
   glGenBuffers(2, surfaceBuffers);
   glBindBuffer(GL_ARRAY_BUFFER, surfaceBuffers[0]);

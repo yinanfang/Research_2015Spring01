@@ -40,7 +40,7 @@ void resize( int w, int h ) {
 
 void printTimeTakenByFucntion() {
     previousTime = glutGet(GLUT_ELAPSED_TIME);
-    renderStaticObjectInRift();
+    renderStaticObjectInRift(0);
     currentTime = glutGet(GLUT_ELAPSED_TIME);
     printf("Time elapsed: %d ms \n", currentTime - previousTime);
 }
@@ -50,10 +50,12 @@ void display() {
 
   oculusBeginRendering();
   updateRiftTracking();
+  //printf("original: %i; glutTime: %i\n", glutGet(GLUT_ELAPSED_TIME), );
+  SceneNumber = (glutGet(GLUT_ELAPSED_TIME)/100)%NUM_BUFFER;
 
   for(int ieye = 0; ieye < 2; ieye++) {
     pushGLMatricesForEye(ieye);
-    renderStaticObjectInRift();
+    renderStaticObjectInRift(SceneNumber);
     popGLMatricesForEye();
   }
   oculusEndRendering();

@@ -8,7 +8,7 @@
 #ifndef GL
 #define GL
 #include <GL\glew.h>
-#include <GL\glut.h>md
+#include <GL\glut.h>
 #endif
 
 #include <opencv2/core/core.hpp>
