@@ -485,6 +485,42 @@ void filter(std::vector<std::string>& strings, std::string pattern)
     strings.erase(pos, std::end(strings)) ;
 }
 
+//surface_1 = surface_1 + surface_2
+template<class T>
+void SurfaceAddition( CSurface<T> &surface_1, CSurface<T> const&surface_2 )
+{
+  if( surface_1.vtDim != surface_2.vtDim ||
+    surface_1.haveColorInfo() != surface_2.haveColorInfo() ||
+    surface_1.haveNormalInfo() != surface_2.haveNormalInfo() ) {
+      printf("Error<SurfaceAddition>: surfaces format disagree!\n");
+      return;
+  }
+
+  int vtNum_1 = surface_1.vtNum;
+  int vtNum_2 = surface_2.vtNum;
+  int triNum_1 = surface_1.triNum;
+  int triNum_2 = surface_2.triNum;
+  int vtDim = surface_1.vtDim;
+  T* vtData_new = new T[(vtNum_1+vtNum_2)*vtDim];
+  int* triangles_new = new int[(triNum_1+triNum_2)*3];
+  memcpy(vtData_new, surface_1.vtData, sizeof(T)*vtNum_1*vtDim);
+  memcpy(&(vtData_new[vtNum_1*vtDim]), surface_2.vtData, sizeof(T)*vtNum_2*vtDim);
+  memcpy(triangles_new, surface_1.triangles, sizeof(int)*triNum_1*3);
+  for(int i=0; i<triNum_2; i++)
+  {
+  triangles_new[(triNum_1+i)*3] = surface_2.triangles[i*3]+vtNum_1;
+  triangles_new[(triNum_1+i)*3+1] = surface_2.triangles[i*3+1]+vtNum_1;
+  triangles_new[(triNum_1+i)*3+2] = surface_2.triangles[i*3+2]+vtNum_1;
+  }
+
+  delete [] surface_1.triangles;
+  delete [] surface_1.vtData;
+  surface_1.triangles = triangles_new;
+  surface_1.vtData = vtData_new;
+  surface_1.triNum = triNum_1 + triNum_2;
+  surface_1.vtNum = vtNum_1 + vtNum_2;
+}
+
 void loadScannedRoom() {
 //#if USE_RELATIVE_PATHS
 //  //char fname[] = "D:/Lucas/oculusHiballDemo/Data/davidRoom.bin";
@@ -497,7 +533,8 @@ void loadScannedRoom() {
   DIR *dir;
 	struct dirent *ent;
 	vector<string> files;
-	if ((dir = opendir ("D:/Lucas/3dDataRendering/data/seq_bingjie_sit/")) != NULL) {
+	//if ((dir = opendir ("D:/Lucas/3dDataRendering/data/seq_bingjie_sit/")) != NULL) {
+  if ((dir = opendir ("D:/Lucas/Data/models/dynamic/")) != NULL) {
 	  /* print all the files and directories within directory */
 	  while ((ent = readdir (dir)) != NULL) {
 		//printf ("%s\n", ent->d_name);
@@ -507,11 +544,13 @@ void loadScannedRoom() {
 	} else {
 	  perror ("Could not open directory");
 	}
-	filter(files, "surface_all_");
+	//filter(files, "surface_all_");
+  filter(files, "surface_ref_bingjie_t_");
 	printf("Obtained file list total: %i", files.size());
 	//print(files);
 	for(int i = 0; i < NUM_BUFFER; i++) {
-		string file = "D:/Lucas/3dDataRendering/data/seq_bingjie_sit/" + files[i];
+		//string file = "D:/Lucas/3dDataRendering/data/seq_bingjie_sit/" + files[i];
+    string file = "D:/Lucas/Data/models/dynamic/" + files[i];
 		//std::cout << file << endl;
 		CSurface_F input;
 		if (!input.readFromFile(file.c_str())) {
@@ -526,14 +565,14 @@ void loadScannedRoom() {
     cout << "Could not read the surface file!" << endl;
     die();
   }*/
-  CSurface_F surf = source[100];
+  /*CSurface_F surf = source[10];
 
   glGenBuffers(2, surfaceBuffers);
   glBindBuffer(GL_ARRAY_BUFFER, surfaceBuffers[0]);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceBuffers[1]);
 
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*surf.vtNum*surf.vtDim, surf.vtData, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*surf.triNum*3, surf.triangles, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*surf.triNum*3, surf.triangles, GL_STATIC_DRAW);*/
 }
 
 void initStaticObjectRenderer() {
