@@ -548,9 +548,22 @@ void loadScannedRoom() {
   filter(files, "surface_ref_bingjie_t_");
 	printf("Obtained file list total: %i", files.size());
 	//print(files);
-	for(int i = 0; i < NUM_BUFFER; i++) {
+	//for(int i = 0; i < NUM_BUFFER; i++) {
+	//	//string file = "D:/Lucas/3dDataRendering/data/seq_bingjie_sit/" + files[i];
+ //   string file = "D:/Lucas/Data/models/dynamic/" + files[i];
+	//	//std::cout << file << endl;
+	//	CSurface_F input;
+	//	if (!input.readFromFile(file.c_str())) {
+	//		cout << "Could not read the surface file!" << endl;
+	//		die();
+	//	} else {
+	//		source.push_back(input);
+	//	}
+	//}
+
+  for(int i = 0; i < NUM_BUFFER; i++) {
 		//string file = "D:/Lucas/3dDataRendering/data/seq_bingjie_sit/" + files[i];
-    string file = "D:/Lucas/Data/models/dynamic/" + files[i];
+    string file = "D:/Lucas/Data/models/dynamic/" + files[0];
 		//std::cout << file << endl;
 		CSurface_F input;
 		if (!input.readFromFile(file.c_str())) {
@@ -560,19 +573,21 @@ void loadScannedRoom() {
 			source.push_back(input);
 		}
 	}
+  // CSurface Addition
+  for(int i = 1; i < NUM_BUFFER; i++) {
+    string file = "D:/Lucas/Data/models/dynamic/" + files[i];
+		//std::cout << file << endl;
+		CSurface_F input;
+		if (!input.readFromFile(file.c_str())) {
+			cout << "Could not read the surface file!" << endl;
+			die();
+		} else {
+      CSurface_F moment = source[i];
+      SurfaceAddition(moment, input);
+      //source[i] = moment;
+		}
+	}
 
-  /*if (!surf.readFromFile(fname)) {
-    cout << "Could not read the surface file!" << endl;
-    die();
-  }*/
-  /*CSurface_F surf = source[10];
-
-  glGenBuffers(2, surfaceBuffers);
-  glBindBuffer(GL_ARRAY_BUFFER, surfaceBuffers[0]);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceBuffers[1]);
-
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*surf.vtNum*surf.vtDim, surf.vtData, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*surf.triNum*3, surf.triangles, GL_STATIC_DRAW);*/
 }
 
 void initStaticObjectRenderer() {
