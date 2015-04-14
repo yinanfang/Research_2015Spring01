@@ -16,4 +16,4 @@ void printMat4(mat4 currMat);
 void renderStaticObjectInRiftTimer(int t);
 
 static int SceneNumber = 0;
-static int NUM_BUFFER = 20;
+static int NUM_BUFFER = 1;
