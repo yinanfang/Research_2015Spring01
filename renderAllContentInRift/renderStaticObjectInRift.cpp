@@ -16,7 +16,7 @@ extern float globalRotx;
 extern float globalRoty;
 extern float globalRotz;
 
-float transx = -100;
+float transx = 10;
 float transy = 10;
 float transz = -280;
 float rotx = -230;
