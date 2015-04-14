@@ -25,6 +25,7 @@ float rotz = 40;
 
 double rotAngle;
 vector<CSurface_F> source;
+vector<vector<CSurface_F>> scene;
 GLuint surfaceBuffers[2];
 int staticObjectsKeyMode = 0;
 bool drawGardenGnome = false;
@@ -521,20 +522,14 @@ void SurfaceAddition( CSurface<T> &surface_1, CSurface<T> const&surface_2 )
   surface_1.vtNum = vtNum_1 + vtNum_2;
 }
 
-void loadScannedRoom() {
-//#if USE_RELATIVE_PATHS
-//  //char fname[] = "D:/Lucas/oculusHiballDemo/Data/davidRoom.bin";
-//  char fname[] = "D:/Lucas/oculusHiballDemo/Data/surface_all_0036.bin";
-//#else
-//  //char fname[] = "D:/Lucas/oculusHiballDemo/Data/davidRoom.bin";
-//	char fname[] = "D:/Lucas/oculusHiballDemo/Data/surface_all_0036.bin";
-//#endif
-
+void loadObjectBin(std::string prefix) {
   DIR *dir;
 	struct dirent *ent;
 	vector<string> files;
 	//if ((dir = opendir ("D:/Lucas/3dDataRendering/data/seq_bingjie_sit/")) != NULL) {
-  if ((dir = opendir ("D:/Lucas/Data/models/dynamic/")) != NULL) {
+  std::string path = "D:/Lucas/Data/models/dynamic/";
+  
+  if ((dir = opendir (path.c_str())) != NULL) {
 	  /* print all the files and directories within directory */
 	  while ((ent = readdir (dir)) != NULL) {
 		//printf ("%s\n", ent->d_name);
@@ -550,7 +545,7 @@ void loadScannedRoom() {
 	//print(files);
 	for(int i = 0; i < NUM_BUFFER; i++) {
 		//string file = "D:/Lucas/3dDataRendering/data/seq_bingjie_sit/" + files[i];
-    string file = "D:/Lucas/Data/models/dynamic/" + files[i];
+    string file = path + files[i];
 		//std::cout << file << endl;
 		CSurface_F input;
 		if (!input.readFromFile(file.c_str())) {
@@ -560,19 +555,12 @@ void loadScannedRoom() {
 			source.push_back(input);
 		}
 	}
+}
 
-  /*if (!surf.readFromFile(fname)) {
-    cout << "Could not read the surface file!" << endl;
-    die();
-  }*/
-  /*CSurface_F surf = source[10];
+void loadScannedRoom() {
+  loadObjectBin("");
 
-  glGenBuffers(2, surfaceBuffers);
-  glBindBuffer(GL_ARRAY_BUFFER, surfaceBuffers[0]);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, surfaceBuffers[1]);
 
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*surf.vtNum*surf.vtDim, surf.vtData, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*surf.triNum*3, surf.triangles, GL_STATIC_DRAW);*/
 }
 
 void initStaticObjectRenderer() {
