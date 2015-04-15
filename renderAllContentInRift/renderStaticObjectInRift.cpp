@@ -256,12 +256,13 @@ void scannedObject::drawScannedObject() {
   glDisableVertexAttribArray(colorIndex);
 }
 
-void drawScannedRoom(int number) {
+void drawSceneObject(int objectNumber, int sceneNumber) {
   //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
 
   //printf("drawing room #%i\n", number);
-  CSurface_F surf = source[(int)number];
+  source = scene[objectNumber];
+  CSurface_F surf = source[sceneNumber];
 
   GLuint buffers[2];
 	glGenBuffers(2, buffers);
@@ -345,6 +346,12 @@ void drawScannedRoom(int number) {
 	
 	glFlush();
 	glutSwapBuffers();
+}
+
+void drawScannedRoom(int sceneNumber) {
+  for (int i = 0; i < scene.size(); i++) {
+    drawSceneObject(i, sceneNumber);
+  }
 }
 
 void renderStaticObjectInRift(int number) {   
@@ -526,9 +533,9 @@ void loadObjectBin(std::string prefix) {
   DIR *dir;
 	struct dirent *ent;
 	vector<string> files;
-	//if ((dir = opendir ("D:/Lucas/3dDataRendering/data/seq_bingjie_sit/")) != NULL) {
   std::string path = "D:/Lucas/Data/models/dynamic/";
   
+  printf ("Loading object with prefix: %s\n", prefix);
   if ((dir = opendir (path.c_str())) != NULL) {
 	  /* print all the files and directories within directory */
 	  while ((ent = readdir (dir)) != NULL) {
@@ -540,9 +547,10 @@ void loadObjectBin(std::string prefix) {
 	  perror ("Could not open directory");
 	}
 	//filter(files, "surface_all_");
-  filter(files, "surface_ref_bingjie_t_");
+  filter(files, prefix);
 	printf("Obtained file list total: %i", files.size());
 	//print(files);
+  vector<CSurface_F> objSequence;
 	for(int i = 0; i < NUM_BUFFER; i++) {
 		//string file = "D:/Lucas/3dDataRendering/data/seq_bingjie_sit/" + files[i];
     string file = path + files[i];
@@ -552,15 +560,19 @@ void loadObjectBin(std::string prefix) {
 			cout << "Could not read the surface file!" << endl;
 			die();
 		} else {
-			source.push_back(input);
+			objSequence.push_back(input);
 		}
 	}
+  scene.push_back(objSequence);
 }
 
 void loadScannedRoom() {
-  loadObjectBin("");
-
-
+  loadObjectBin("surface_ref_bingjie_t_");
+  loadObjectBin("surface_ref_chair_t_");
+  loadObjectBin("surface_ref_sofa_t_");
+  loadObjectBin("surface_ref_table_t_");
+  loadObjectBin("surface_ref_tea_pot_t_");
+  loadObjectBin("surface_ref_tissue_box_t_");
 }
 
 void initStaticObjectRenderer() {
