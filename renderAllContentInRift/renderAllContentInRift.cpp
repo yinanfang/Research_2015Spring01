@@ -50,8 +50,11 @@ void display() {
 
   oculusBeginRendering();
   updateRiftTracking();
-  //printf("original: %i; glutTime: %i\n", glutGet(GLUT_ELAPSED_TIME), );
+   
   SceneNumber = (glutGet(GLUT_ELAPSED_TIME)/100)%NUM_BUFFER;
+  printf("SceneNumber: %d\n", SceneNumber);
+  //SceneNumber = SceneNumber++ % NUM_BUFFER;
+  //printf("SceneNumber: %d\n", SceneNumber);
 
   for(int ieye = 0; ieye < 2; ieye++) {
     pushGLMatricesForEye(ieye);

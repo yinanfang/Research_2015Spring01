@@ -258,17 +258,8 @@ void scannedObject::drawScannedObject() {
 
 void drawSceneObject(int objectNumber, int sceneNumber) {
   //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glLoadIdentity();
 
   //printf("drawing room #%i\n", number);
-  source = scene[objectNumber];
-  CSurface_F surf = source[sceneNumber];
-
-  GLuint buffers[2];
-	glGenBuffers(2, buffers);
-
-  glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
 
   int positionIndex = glGetAttribLocation(shaderProgram, "position");
   dieOnInvalidIndex(positionIndex, "position");
@@ -277,10 +268,10 @@ void drawSceneObject(int objectNumber, int sceneNumber) {
   dieOnInvalidIndex(colorIndex, "color");
 
   glEnableVertexAttribArray(positionIndex);
-  glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, surf.vtDim*sizeof(float), BUFFER_OFFSET(0));
+  glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, scene[objectNumber][sceneNumber].vtDim*sizeof(float), BUFFER_OFFSET(0));
 	
   glEnableVertexAttribArray(colorIndex);
-  glVertexAttribPointer(colorIndex, 3, GL_FLOAT, GL_FALSE, surf.vtDim*sizeof(float), BUFFER_OFFSET(sizeof(float)*(surf.vtDim-3)));
+  glVertexAttribPointer(colorIndex, 3, GL_FLOAT, GL_FALSE, scene[objectNumber][sceneNumber].vtDim*sizeof(float), BUFFER_OFFSET(sizeof(float)*(scene[objectNumber][sceneNumber].vtDim-3)));
   
 #if PRINT_PROJECTION_MATRIX
   printf("Current projection matrix /n");
@@ -298,8 +289,8 @@ void drawSceneObject(int objectNumber, int sceneNumber) {
     * rotation3D(vec3(0,1,0), globalRoty) 
     * rotation3D(vec3(0,0,1), globalRotz);
 
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*surf.vtNum*surf.vtDim, surf.vtData, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*surf.triNum*3, surf.triangles, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*scene[objectNumber][sceneNumber].vtNum*scene[objectNumber][sceneNumber].vtDim, scene[objectNumber][sceneNumber].vtData, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*scene[objectNumber][sceneNumber].triNum*3, scene[objectNumber][sceneNumber].triangles, GL_STATIC_DRAW);
 
 
 #if PRINT_OFFSETMODELVIEW_MATRIX 
@@ -315,7 +306,7 @@ void drawSceneObject(int objectNumber, int sceneNumber) {
   setUniformMat4(shaderProgram, "modelview", modelview*offsetModelview);
   setUniformFloat(shaderProgram, "intensityFactor", 1.f);
   // setUniformMat4(shaderProgram, "intensityfactor", scaling3D(vec3(1)));
-  glDrawElements(GL_TRIANGLES, surf.triNum*3, GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, scene[objectNumber][sceneNumber].triNum*3, GL_UNSIGNED_INT, 0);
 
 #define DRAW_COORDINATE_AXES 0
 #if DRAW_COORDINATE_AXES
@@ -342,10 +333,8 @@ void drawSceneObject(int objectNumber, int sceneNumber) {
 	
   glDisableVertexAttribArray(positionIndex);
   glDisableVertexAttribArray(colorIndex);
-  glDeleteBuffers(2, buffers);
 	
-	glFlush();
-	glutSwapBuffers();
+
 }
 
 void drawScannedRoom(int sceneNumber) {
