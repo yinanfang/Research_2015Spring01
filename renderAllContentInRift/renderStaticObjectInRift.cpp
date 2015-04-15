@@ -16,10 +16,10 @@ extern float globalRotx;
 extern float globalRoty;
 extern float globalRotz;
 
-float transx = 10;
-float transy = 10;
-float transz = -280;
-float rotx = -230;
+float transx = -30;
+float transy = -95;
+float transz = -125;
+float rotx = 90;
 float roty = 0;
 float rotz = 40;
 
@@ -29,6 +29,7 @@ vector<vector<CSurface_F>> scene;
 GLuint surfaceBuffers[2];
 int staticObjectsKeyMode = 0;
 bool drawGardenGnome = false;
+GLuint buffers[2];
 
 int rsoCurrentTime = 0, rsoPreviousTime = 0;
 float previousIntensity = 0.8;
@@ -257,9 +258,10 @@ void scannedObject::drawScannedObject() {
 }
 
 void drawSceneObject(int objectNumber, int sceneNumber) {
-  //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   //printf("drawing room #%i\n", number);
+
+  glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
 
   int positionIndex = glGetAttribLocation(shaderProgram, "position");
   dieOnInvalidIndex(positionIndex, "position");
@@ -573,6 +575,9 @@ void initStaticObjectRenderer() {
 
   rotAngle = 0.0;
   glViewport(0, 0, 800, 800);
+
+  glGenBuffers(2, buffers);
+
 
   loadScannedRoom();
 
