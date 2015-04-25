@@ -16,12 +16,12 @@ extern float globalRotx;
 extern float globalRoty;
 extern float globalRotz;
 
-float transx = -30;
-float transy = -95;
-float transz = -125;
+float transx = 20;
+float transy = -70;
+float transz = 20;
 float rotx = 90;
 float roty = 0;
-float rotz = 40;
+float rotz = -120;
 
 double rotAngle;
 vector<CSurface_F> source;
