@@ -562,7 +562,7 @@ int CSurface<T>::readFromFileBIN(const char *filename)
 		return -1;
 	}
 
-	printf("Reading Surface<%s>: ", filename);
+	//printf("Reading Surface<%s>: ", filename);
 
 	numread = fread(&vtDim, sizeof(int), 1, file);
 	if( numread != 1 )
@@ -620,7 +620,7 @@ int CSurface<T>::readFromFileBIN(const char *filename)
 			printf("Error when Reading vertex data\n");
 		return -1;
 	}
-	printf("%d vertices,", vtNum);
+	// printf("%d vertices,", vtNum);
 
 	if( this->vtData != NULL ) delete [] vtData;
 	if(type_cur == type)
@@ -660,7 +660,7 @@ int CSurface<T>::readFromFileBIN(const char *filename)
 		printf("Error when Reading triangles\n");
 		return -1;
 	}
-	printf("%d triangles,", triNum);
+	// printf("%d triangles,", triNum);
 
 
 	for(int i=0; i<this->colors_of_view.size(); i++)
@@ -686,11 +686,11 @@ int CSurface<T>::readFromFileBIN(const char *filename)
 			}
 			this->colors_of_view.push_back(colors);
 		}
-		printf("%d views of color\n", view_num);
+		// printf("%d views of color\n", view_num);
 	}
 	else
 	{
-		printf(" are read!\n");
+		// printf(" are read!\n");
 	}
 
 	fclose(file);

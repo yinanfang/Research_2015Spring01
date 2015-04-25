@@ -51,7 +51,7 @@ void display() {
   oculusBeginRendering();
   updateRiftTracking();
    
-  SceneNumber = (glutGet(GLUT_ELAPSED_TIME)/50)%NUM_BUFFER;
+  SceneNumber = (glutGet(GLUT_ELAPSED_TIME)/30)%NUM_BUFFER;
   // printf("SceneNumber: %d\n", SceneNumber);
   //SceneNumber = SceneNumber++ % NUM_BUFFER;
   //printf("SceneNumber: %d\n", SceneNumber);

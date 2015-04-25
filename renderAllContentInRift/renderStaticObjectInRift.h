@@ -16,4 +16,6 @@ void printMat4(mat4 currMat);
 void renderStaticObjectInRiftTimer(int t);
 
 static int SceneNumber = 0;
-static int NUM_BUFFER = 550;
+#define NUM_BUFFER 300
+#define numOfDynamicObjectsInScene 6
+#define numOfStaticObjectsInScene 3

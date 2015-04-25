@@ -12,6 +12,8 @@ extern mat4 offsetModelview;
 #define HENRY_OFFICE 1
 #define DAVID_ROOM 0
 
+extern int currentTime, previousTime;
+
 extern float globalRotx;
 extern float globalRoty;
 extern float globalRotz;
@@ -24,13 +26,18 @@ float roty = 0;
 float rotz = -120;
 
 double rotAngle;
-vector<CSurface_F> source;
-vector<vector<CSurface_F>> scene;
-vector<CSurface_F> scene_static;
-GLuint surfaceBuffers[2];
 int staticObjectsKeyMode = 0;
 bool drawGardenGnome = false;
-GLuint buffers[2];
+
+struct SceneObject {
+  GLuint buffer[2];
+  int vtNum;
+  int triNum;
+  int vtDim;
+};
+
+SceneObject dynamic_buffers[NUM_BUFFER][numOfDynamicObjectsInScene];
+SceneObject static_buffers[numOfStaticObjectsInScene];
 
 int rsoCurrentTime = 0, rsoPreviousTime = 0;
 float previousIntensity = 0.8;
@@ -261,8 +268,8 @@ void scannedObject::drawScannedObject() {
 void drawSceneObject(int objectNumber, int sceneNumber) {
   //printf("drawing room #%i\n", number);
 
-  glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
+  glBindBuffer(GL_ARRAY_BUFFER, dynamic_buffers[sceneNumber][objectNumber].buffer[0]);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dynamic_buffers[sceneNumber][objectNumber].buffer[1]);
 
   int positionIndex = glGetAttribLocation(shaderProgram, "position");
   dieOnInvalidIndex(positionIndex, "position");
@@ -271,10 +278,10 @@ void drawSceneObject(int objectNumber, int sceneNumber) {
   dieOnInvalidIndex(colorIndex, "color");
 
   glEnableVertexAttribArray(positionIndex);
-  glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, scene[objectNumber][sceneNumber].vtDim*sizeof(float), BUFFER_OFFSET(0));
+  glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, dynamic_buffers[sceneNumber][objectNumber].vtDim*sizeof(float), BUFFER_OFFSET(0));
 	
   glEnableVertexAttribArray(colorIndex);
-  glVertexAttribPointer(colorIndex, 3, GL_FLOAT, GL_FALSE, scene[objectNumber][sceneNumber].vtDim*sizeof(float), BUFFER_OFFSET(sizeof(float)*(scene[objectNumber][sceneNumber].vtDim-3)));
+  glVertexAttribPointer(colorIndex, 3, GL_FLOAT, GL_FALSE, dynamic_buffers[sceneNumber][objectNumber].vtDim*sizeof(float), BUFFER_OFFSET(sizeof(float)*(dynamic_buffers[sceneNumber][objectNumber].vtDim-3)));
   
 #if PRINT_PROJECTION_MATRIX
   printf("Current projection matrix /n");
@@ -292,10 +299,6 @@ void drawSceneObject(int objectNumber, int sceneNumber) {
     * rotation3D(vec3(0,1,0), globalRoty) 
     * rotation3D(vec3(0,0,1), globalRotz);
 
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*scene[objectNumber][sceneNumber].vtNum*scene[objectNumber][sceneNumber].vtDim, scene[objectNumber][sceneNumber].vtData, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*scene[objectNumber][sceneNumber].triNum*3, scene[objectNumber][sceneNumber].triangles, GL_STATIC_DRAW);
-
-
 #if PRINT_OFFSETMODELVIEW_MATRIX 
   printf("Current offsetModelView matrix /n");
   printMat4(offsetModelview);
@@ -309,7 +312,7 @@ void drawSceneObject(int objectNumber, int sceneNumber) {
   setUniformMat4(shaderProgram, "modelview", modelview*offsetModelview);
   setUniformFloat(shaderProgram, "intensityFactor", 1.f);
   // setUniformMat4(shaderProgram, "intensityfactor", scaling3D(vec3(1)));
-  glDrawElements(GL_TRIANGLES, scene[objectNumber][sceneNumber].triNum*3, GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, dynamic_buffers[sceneNumber][objectNumber].triNum*3, GL_UNSIGNED_INT, 0);
 
 #define DRAW_COORDINATE_AXES 0
 #if DRAW_COORDINATE_AXES
@@ -341,8 +344,8 @@ void drawSceneObject(int objectNumber, int sceneNumber) {
 void drawStaticObject(int objectNumber) {
   //printf("drawing room #%i\n", number);
 
-  glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
+  glBindBuffer(GL_ARRAY_BUFFER, static_buffers[objectNumber].buffer[0]);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, static_buffers[objectNumber].buffer[1]);
 
   int positionIndex = glGetAttribLocation(shaderProgram, "position");
   dieOnInvalidIndex(positionIndex, "position");
@@ -351,10 +354,10 @@ void drawStaticObject(int objectNumber) {
   dieOnInvalidIndex(colorIndex, "color");
 
   glEnableVertexAttribArray(positionIndex);
-  glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, scene_static[objectNumber].vtDim*sizeof(float), BUFFER_OFFSET(0));
+  glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, static_buffers[objectNumber].vtDim*sizeof(float), BUFFER_OFFSET(0));
 	
   glEnableVertexAttribArray(colorIndex);
-  glVertexAttribPointer(colorIndex, 3, GL_FLOAT, GL_FALSE, scene_static[objectNumber].vtDim*sizeof(float), BUFFER_OFFSET(sizeof(float)*(scene_static[objectNumber].vtDim-3)));
+  glVertexAttribPointer(colorIndex, 3, GL_FLOAT, GL_FALSE, static_buffers[objectNumber].vtDim*sizeof(float), BUFFER_OFFSET(sizeof(float)*(static_buffers[objectNumber].vtDim-3)));
   
 #if PRINT_PROJECTION_MATRIX
   printf("Current projection matrix /n");
@@ -372,10 +375,6 @@ void drawStaticObject(int objectNumber) {
     * rotation3D(vec3(0,1,0), globalRoty) 
     * rotation3D(vec3(0,0,1), globalRotz);
 
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*scene_static[objectNumber].vtNum*scene_static[objectNumber].vtDim, scene_static[objectNumber].vtData, GL_STATIC_DRAW);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*scene_static[objectNumber].triNum*3, scene_static[objectNumber].triangles, GL_STATIC_DRAW);
-
-
 #if PRINT_OFFSETMODELVIEW_MATRIX 
   printf("Current offsetModelView matrix /n");
   printMat4(offsetModelview);
@@ -389,7 +388,8 @@ void drawStaticObject(int objectNumber) {
   setUniformMat4(shaderProgram, "modelview", modelview*offsetModelview);
   setUniformFloat(shaderProgram, "intensityFactor", 1.f);
   // setUniformMat4(shaderProgram, "intensityfactor", scaling3D(vec3(1)));
-  glDrawElements(GL_TRIANGLES, scene_static[objectNumber].triNum*3, GL_UNSIGNED_INT, 0);
+
+  glDrawElements(GL_TRIANGLES, static_buffers[objectNumber].triNum*3, GL_UNSIGNED_INT, 0);
 
 #define DRAW_COORDINATE_AXES 0
 #if DRAW_COORDINATE_AXES
@@ -416,16 +416,19 @@ void drawStaticObject(int objectNumber) {
 	
   glDisableVertexAttribArray(positionIndex);
   glDisableVertexAttribArray(colorIndex);
+
+
 }
 
 void drawScannedRoom(int sceneNumber) {
-  for (int i = 0; i < scene.size(); i++) {
+  for (int i = 0; i < numOfDynamicObjectsInScene; i++) {
     drawSceneObject(i, sceneNumber);
   }
 
-  for (int i = 0; i < scene_static.size(); i++) {
+  for (int i = 0; i < numOfStaticObjectsInScene; i++) {
     drawStaticObject(i);
   }
+
 }
 
 void renderStaticObjectInRift(int number) {   
@@ -603,14 +606,14 @@ void SurfaceAddition( CSurface<T> &surface_1, CSurface<T> const&surface_2 )
   surface_1.vtNum = vtNum_1 + vtNum_2;
 }
 
-void loadObjectBin(std::string prefix) {
+void loadObjectBin(std::string prefix, int objectNumber) {
   DIR *dir;
 	struct dirent *ent;
 	vector<string> files;
 
   // Load dynamic object
   std::string path = "D:/Lucas/Data/models/dynamic/";
-  printf ("Loading object with prefix: %s\n", prefix);
+  printf ("Loading object with prefix: %s \n", prefix.c_str());
   if ((dir = opendir (path.c_str())) != NULL) {
 	  /* print all the files and directories within directory */
 	  while ((ent = readdir (dir)) != NULL) {
@@ -623,9 +626,9 @@ void loadObjectBin(std::string prefix) {
 	}
 	//filter(files, "surface_all_");
   filter(files, prefix);
-	printf("Obtained file list total: %i", files.size());
+	printf("Obtained file list total: %i \n", files.size());
 	//print(files);
-  vector<CSurface_F> objSequence;
+  SceneObject curObject;
 	for(int i = 0; i < NUM_BUFFER; i++) {
 		//string file = "D:/Lucas/3dDataRendering/data/seq_bingjie_sit/" + files[i];
     string file = path + files[i];
@@ -635,10 +638,17 @@ void loadObjectBin(std::string prefix) {
 			cout << "Could not read the surface file!" << endl;
 			die();
 		} else {
-			objSequence.push_back(input);
+      glGenBuffers(2, curObject.buffer);
+      glBindBuffer(GL_ARRAY_BUFFER, curObject.buffer[0]);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, curObject.buffer[1]);
+      curObject.triNum = input.triNum;
+      curObject.vtNum = input.vtNum;
+      curObject.vtDim = input.vtDim;
+      glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*input.vtNum*input.vtDim, input.vtData, GL_STATIC_DRAW);
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*input.triNum*3, input.triangles, GL_STATIC_DRAW);
+      dynamic_buffers[i][objectNumber] = curObject;
 		}
 	}
-  scene.push_back(objSequence);
 }
 
 void loadStaticObjects() {
@@ -662,7 +672,7 @@ void loadStaticObjects() {
   filter(files, "surface_");
 	printf("Obtained file list total: %i", files.size());
 	//print(files);
-  vector<CSurface_F> objSequence;
+  SceneObject curObject;
 	for(int i = 0; i < files.size(); i++) {
     string file = path + files[i];
 		//std::cout << file << endl;
@@ -671,18 +681,26 @@ void loadStaticObjects() {
 			cout << "Could not read the surface file!" << endl;
 			die();
 		} else {
-			scene_static.push_back(input);
+			glGenBuffers(2, curObject.buffer);
+      glBindBuffer(GL_ARRAY_BUFFER, curObject.buffer[0]);
+      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, curObject.buffer[1]);
+      curObject.triNum = input.triNum;
+      curObject.vtNum = input.vtNum;
+      curObject.vtDim = input.vtDim;
+      glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*input.vtNum*input.vtDim, input.vtData, GL_STATIC_DRAW);
+      glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*input.triNum*3, input.triangles, GL_STATIC_DRAW);
+      static_buffers[i] = curObject;
 		}
 	}
 }
 
 void loadScannedRoom() {
-  loadObjectBin("surface_ref_bingjie_t_");
-  loadObjectBin("surface_ref_chair_t_");
-  loadObjectBin("surface_ref_sofa_t_");
-  loadObjectBin("surface_ref_table_t_");
-  loadObjectBin("surface_ref_tea_pot_t_");
-  loadObjectBin("surface_ref_tissue_box_t_");
+  loadObjectBin("surface_ref_bingjie_t_", 0);
+  loadObjectBin("surface_ref_chair_t_", 1);
+  loadObjectBin("surface_ref_sofa_t_", 2);
+  loadObjectBin("surface_ref_table_t_", 3);
+  loadObjectBin("surface_ref_tea_pot_t_", 4);
+  loadObjectBin("surface_ref_tissue_box_t_", 5);
 
   loadStaticObjects();
 }
@@ -696,9 +714,6 @@ void initStaticObjectRenderer() {
 
   rotAngle = 0.0;
   glViewport(0, 0, 800, 800);
-
-  glGenBuffers(2, buffers);
-
 
   loadScannedRoom();
 
