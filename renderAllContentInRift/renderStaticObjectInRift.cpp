@@ -16,8 +16,8 @@ extern float globalRotx;
 extern float globalRoty;
 extern float globalRotz;
 
-float transx = 20;
-float transy = -70;
+float transx = 25;
+float transy = -125;
 float transz = 20;
 float rotx = 90;
 float roty = 0;
@@ -26,6 +26,7 @@ float rotz = -120;
 double rotAngle;
 vector<CSurface_F> source;
 vector<vector<CSurface_F>> scene;
+vector<CSurface_F> scene_static;
 GLuint surfaceBuffers[2];
 int staticObjectsKeyMode = 0;
 bool drawGardenGnome = false;
@@ -335,13 +336,95 @@ void drawSceneObject(int objectNumber, int sceneNumber) {
 	
   glDisableVertexAttribArray(positionIndex);
   glDisableVertexAttribArray(colorIndex);
-	
+}
 
+void drawStaticObject(int objectNumber) {
+  //printf("drawing room #%i\n", number);
+
+  glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
+
+  int positionIndex = glGetAttribLocation(shaderProgram, "position");
+  dieOnInvalidIndex(positionIndex, "position");
+    
+  int colorIndex = glGetAttribLocation(shaderProgram, "color");
+  dieOnInvalidIndex(colorIndex, "color");
+
+  glEnableVertexAttribArray(positionIndex);
+  glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, scene_static[objectNumber].vtDim*sizeof(float), BUFFER_OFFSET(0));
+	
+  glEnableVertexAttribArray(colorIndex);
+  glVertexAttribPointer(colorIndex, 3, GL_FLOAT, GL_FALSE, scene_static[objectNumber].vtDim*sizeof(float), BUFFER_OFFSET(sizeof(float)*(scene_static[objectNumber].vtDim-3)));
+  
+#if PRINT_PROJECTION_MATRIX
+  printf("Current projection matrix /n");
+  printMat4(projection);
+#endif
+
+  setUniformMat4(shaderProgram, "projection", projection);
+  setUniformMat4(shaderProgram, "camera", camera);
+	
+  offsetModelview = translation3D(vec3(transx, transy, transz)) 
+    * rotation3D(vec3(1,0,0), rotx) 
+    * rotation3D(vec3(0,1,0), roty) 
+    * rotation3D(vec3(0,0,1), rotz)
+    * rotation3D(vec3(1,0,0), globalRotx) 
+    * rotation3D(vec3(0,1,0), globalRoty) 
+    * rotation3D(vec3(0,0,1), globalRotz);
+
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*scene_static[objectNumber].vtNum*scene_static[objectNumber].vtDim, scene_static[objectNumber].vtData, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*scene_static[objectNumber].triNum*3, scene_static[objectNumber].triangles, GL_STATIC_DRAW);
+
+
+#if PRINT_OFFSETMODELVIEW_MATRIX 
+  printf("Current offsetModelView matrix /n");
+  printMat4(offsetModelview);
+#endif
+
+#if PRINT_MODELVIEW_MATRIX
+  printf("Current modelview matrix /n");
+  printMat4(modelview);
+#endif
+
+  setUniformMat4(shaderProgram, "modelview", modelview*offsetModelview);
+  setUniformFloat(shaderProgram, "intensityFactor", 1.f);
+  // setUniformMat4(shaderProgram, "intensityfactor", scaling3D(vec3(1)));
+  glDrawElements(GL_TRIANGLES, scene_static[objectNumber].triNum*3, GL_UNSIGNED_INT, 0);
+
+#define DRAW_COORDINATE_AXES 0
+#if DRAW_COORDINATE_AXES
+  float axis_vertices[] = {
+    0, 0, 0,   1, 1, 1,
+    1, 0, 0,   1, 0, 0,
+    0, 1, 0,   0, 1, 0,
+    0, 0, 1,   0, 0, 1
+  };
+  unsigned int axis_indices[] = {0, 1, 0, 2, 0, 3};
+  GLuint buffers[2];
+  glGenBuffers(2, buffers);
+  glVertexAttribPointer(positionIndex, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), BUFFER_OFFSET(0));
+  glVertexAttribPointer(colorIndex, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), BUFFER_OFFSET(3*sizeof(float)));
+  glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*24, axis_vertices, GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*6, axis_indices, GL_STATIC_DRAW);
+  glLineWidth(3);
+  setUniformMatrix(shaderProgram, modelview*scaling3D(vec3(100)), "modelview");
+  glDrawElements(GL_LINES, 6, GL_UNSIGNED_INT, 0);
+  glDeleteBuffers(2, buffers);
+#endif
+	
+  glDisableVertexAttribArray(positionIndex);
+  glDisableVertexAttribArray(colorIndex);
 }
 
 void drawScannedRoom(int sceneNumber) {
   for (int i = 0; i < scene.size(); i++) {
     drawSceneObject(i, sceneNumber);
+  }
+
+  for (int i = 0; i < scene_static.size(); i++) {
+    drawStaticObject(i);
   }
 }
 
@@ -524,8 +607,9 @@ void loadObjectBin(std::string prefix) {
   DIR *dir;
 	struct dirent *ent;
 	vector<string> files;
+
+  // Load dynamic object
   std::string path = "D:/Lucas/Data/models/dynamic/";
-  
   printf ("Loading object with prefix: %s\n", prefix);
   if ((dir = opendir (path.c_str())) != NULL) {
 	  /* print all the files and directories within directory */
@@ -557,6 +641,41 @@ void loadObjectBin(std::string prefix) {
   scene.push_back(objSequence);
 }
 
+void loadStaticObjects() {
+  DIR *dir;
+	struct dirent *ent;
+	vector<string> files;
+
+  // Load static object
+  std::string path = "D:/Lucas/Data/models/static/";
+  printf ("Loading all static objects\n");
+  if ((dir = opendir (path.c_str())) != NULL) {
+	  /* print all the files and directories within directory */
+	  while ((ent = readdir (dir)) != NULL) {
+		printf ("%s\n", ent->d_name);
+		  files.push_back(ent->d_name);
+	  }
+	  closedir (dir);
+	} else {
+	  perror ("Could not open directory");
+	}
+  filter(files, "surface_");
+	printf("Obtained file list total: %i", files.size());
+	//print(files);
+  vector<CSurface_F> objSequence;
+	for(int i = 0; i < files.size(); i++) {
+    string file = path + files[i];
+		//std::cout << file << endl;
+		CSurface_F input;
+		if (!input.readFromFile(file.c_str())) {
+			cout << "Could not read the surface file!" << endl;
+			die();
+		} else {
+			scene_static.push_back(input);
+		}
+	}
+}
+
 void loadScannedRoom() {
   loadObjectBin("surface_ref_bingjie_t_");
   loadObjectBin("surface_ref_chair_t_");
@@ -564,6 +683,8 @@ void loadScannedRoom() {
   loadObjectBin("surface_ref_table_t_");
   loadObjectBin("surface_ref_tea_pot_t_");
   loadObjectBin("surface_ref_tissue_box_t_");
+
+  loadStaticObjects();
 }
 
 void initStaticObjectRenderer() {
